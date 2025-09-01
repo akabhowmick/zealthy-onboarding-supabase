@@ -7,6 +7,9 @@ export const DataPage = () => {
   useEffect(() => {
     (async () => setRows(await apiGet<UserRow[]>("/users")))();
   }, []);
+
+  const dataFields = ["Email", "About", "Address", "Birthdate", "Step", "Created"];
+
   return (
     <main>
       <h1 className="text-2xl font-bold">User Data</h1>
@@ -14,12 +17,15 @@ export const DataPage = () => {
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left p-2">Email</th>
-              <th className="text-left p-2">About</th>
-              <th className="text-left p-2">Address</th>
-              <th className="text-left p-2">Birthdate</th>
-              <th className="text-left p-2">Step</th>
-              <th className="text-left p-2">Created</th>
+              {dataFields.map((field) => (
+                <th
+                  key={field}
+                  className="text-left p-2 font-semibold whitespace-nowrap"
+                  style={{ borderColor: `rgb(var(--z-border))` }}
+                >
+                  {field}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -47,4 +53,4 @@ export const DataPage = () => {
       </div>
     </main>
   );
-}
+};

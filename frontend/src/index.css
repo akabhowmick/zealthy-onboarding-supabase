@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+:root {
+  --z-bg: #edfff3; 
+  --z-card: #aee5c0; 
+  --z-ink: #00210b;
+  --z-subtle: 100 116 139; /* secondary text (slate-500) */
+
+  --z-accent: 99 102 241; /* primary accent (indigo-500) */
+  --z-accent-fg: 255 255 255; /* on-accent text */
+  --z-ring: 199 210 254; /* focus ring (indigo-200) */
+
+  --z-header: #aee5c0;
+
+  --z-border: 226 232 240; /* borders (slate-200) */
+  --z-row-alt: 249 250 251; /* zebra rows (gray-50) */
+}
+
+html,
+body,
+#root {
+  font-family: ui-sans-serif, system-ui, Inter, Segoe UI, Roboto, Helvetica, Arial,
+    Apple Color Emoji, Segoe UI Emoji;
+}
