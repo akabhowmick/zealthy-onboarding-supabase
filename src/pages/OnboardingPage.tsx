@@ -1,149 +1,127 @@
+// src/routes/OnboardingRouter.tsx
 import { useEffect, useMemo, useState } from "react";
-import { AboutMeField, AddressFields, BirthdateField } from "../components/fields";
-import { apiGet, apiPost } from "../lib/api";
-import { type ConfigPayload } from "../lib/types";
-import { Stepper } from "../components/Stepper";
+import Stepper from "../components/Stepper";
+import useDraft from "../features/onboarding/hooks/useDrafts";
+import Step1_Account from "../features/onboarding/Step1_Account";
+import Step2_Custom from "../features/onboarding/Step2_Custom";
+import Step3_Custom from "../features/onboarding/Step3_Custom";
+import { getConfig } from "../services/supabaseApi";
+import type { OnboardingConfig, ComponentKind } from "../types";
 
-type Me = {
-  id: string;
-  email: string;
-  aboutMe?: string | null;
-  street?: string | null;
-  city?: string | null;
-  state?: string | null;
-  zip?: string | null;
-  birthdate?: string | null;
-  stepCompleted: number;
-};
-export const OnboardingPage = () => {
-  const [config, setConfig] = useState<ConfigPayload | null>(null);
-  const [me, setMe] = useState<Me | null>(null);
-  const [current, setCurrent] = useState<1 | 2 | 3>(1);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+export default function OnboardingPage() {
+  // admin config
+  const [config, setConfig] = useState<OnboardingConfig | null>(null);
+  const [cfgLoading, setCfgLoading] = useState(true);
+  const [cfgErr, setCfgErr] = useState<string | null>(null);
 
+  // draft management (cookie-backed)
+  const { draftId, draft, setDraftId, load, loading: draftLoading } = useDraft({ autoLoad: true });
+
+  // ui step (defaults to 1; if a draft exists we’ll sync below)
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  // load admin config once
   useEffect(() => {
+    let mounted = true;
     (async () => {
-      const cfg = await apiGet<ConfigPayload>("/config");
-      setConfig(cfg);
-      const meRes = await apiGet<{ user: Me | null }>("/users/me");
-      if (meRes.user) {
-        setMe(meRes.user);
-        setCurrent((meRes.user.stepCompleted ?? 1) as 1 | 2 | 3);
+      try {
+        const cfg = await getConfig();
+        if (!mounted) return;
+        setConfig(cfg);
+      } catch (e) {
+        setCfgErr(e instanceof Error ? e.message : "Failed to load config");
+      } finally {
+        if (mounted) setCfgLoading(false);
       }
     })();
+    return () => { mounted = false; };
   }, []);
 
-  const step2 = useMemo(() => config?.step2 ?? [], [config]);
-  const step3 = useMemo(() => config?.step3 ?? [], [config]);
-
-  async function submitStep1(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setBusy(true);
-    setErr(null);
-    const fd = new FormData(e.currentTarget);
-    const email = String(fd.get("email") || "");
-    const password = String(fd.get("password") || "");
-    try {
-      await apiPost("/users", { step: 1, email, password });
-      setCurrent(2);
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
+  // if we already have a draft, jump the UI to the draft's next step
+  useEffect(() => {
+    if (!draftLoading && draft) {
+      // draft.step is the NEXT step the user should see (2 or 3)
+      const next = draft.step as 2 | 3;
+      // only bump forward; never go backward from 3 to 2
+      setStep(next === 3 ? 3 : 2);
     }
-  }
+  }, [draftLoading, draft]);
 
-  async function submitDynamic(step: 2 | 3, e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setBusy(true);
-    setErr(null);
-    const fd = new FormData(e.currentTarget);
-    const payload = Object.fromEntries(fd.entries());
-    try {
-      await apiPost("/users", { step, data: payload });
-      setCurrent(step === 2 ? 3 : 3);
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const page2 = useMemo<ComponentKind[]>(
+    () => config?.page2_components ?? [],
+    [config]
+  );
+  const page3 = useMemo<ComponentKind[]>(
+    () => config?.page3_components ?? [],
+    [config]
+  );
 
-  function render(list: string[]) {
-    return (
-      <div className="space-y-4">
-        {list.includes("ABOUT_ME") && <AboutMeField defaultValue={me?.aboutMe ?? undefined} />}
-        {list.includes("ADDRESS") && (
-          <AddressFields
-            street={me?.street ?? undefined}
-            city={me?.city ?? undefined}
-            state={me?.state ?? undefined}
-            zip={me?.zip ?? undefined}
-          />
-        )}
-        {list.includes("BIRTHDATE") && <BirthdateField defaultValue={me?.birthdate ?? undefined} />}
-      </div>
-    );
-  }
+  // unified loading/error states
+  if (cfgLoading || draftLoading) return <p>Loading…</p>;
+  if (cfgErr) return <p className="text-red-600">Error: {cfgErr}</p>;
+  if (!config) return <p>No configuration found.</p>;
 
   return (
-    <main>
-      <h1 className="text-2xl font-bold">Welcome</h1>
-      <Stepper current={current} />
-      {err && <p className="text-red-600 mb-4">{err}</p>}
+    <section className="space-y-6">
+      <Stepper total={3} current={step} />
 
-      {current === 1 && (
-        <form onSubmit={submitStep1} className="space-y-4">
-          <div className="space-y-2">
-            <label className="font-medium">Email</label>
-            <input name="email" type="email" required className="w-full border rounded p-2" />
-          </div>
-          <div className="space-y-2">
-            <label className="font-medium">Password</label>
-            <input name="password" type="password" required className="w-full border rounded p-2" />
-          </div>
-          <button disabled={busy} className="bg-black text-white px-4 py-2 rounded">
-            {busy ? "Saving..." : "Continue"}
-          </button>
-        </form>
+      {/* STEP 1: create account -> sets draftId and moves to step 2 */}
+      {step === 1 && (
+        <Step1_Account
+          onCreated={(newDraftId) => {
+            setDraftId(newDraftId); // persists to cookie
+            setStep(2);
+          }}
+        />
       )}
 
-      {current === 2 && config && (
-        <form onSubmit={(e) => submitDynamic(2, e)} className="space-y-4">
-          {render(step2)}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setCurrent(1)}
-              className="px-3 py-2 border rounded"
-            >
-              Back
-            </button>
-            <button disabled={busy} className="bg-black text-white px-4 py-2 rounded">
-              {busy ? "Saving..." : "Continue"}
-            </button>
-          </div>
-        </form>
+      {/* STEP 2: requires a draftId */}
+      {step === 2 && (
+        draftId ? (
+          <Step2_Custom
+            draftId={draftId}
+            components={page2}
+            onNext={() => {
+              setStep(3);
+              // optional: ensure the latest server state is in memory
+              void load(draftId);
+            }}
+          />
+        ) : (
+          <MissingDraftGuard onBackToStart={() => setStep(1)} />
+        )
       )}
 
-      {current === 3 && config && (
-        <form onSubmit={(e) => submitDynamic(3, e)} className="space-y-4">
-          {render(step3)}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setCurrent(2)}
-              className="px-3 py-2 border rounded"
-            >
-              Back
-            </button>
-            <button disabled={busy} className="bg-black text-white px-4 py-2 rounded">
-              {busy ? "Saving..." : "Finish"}
-            </button>
-          </div>
-        </form>
+      {/* STEP 3: requires a draftId */}
+      {step === 3 && (
+        draftId ? (
+          <Step3_Custom
+            draftId={draftId}
+            components={page3}
+            onFinish={() => {
+              alert("Thanks! Your onboarding is complete.");
+              // You could clear the draft cookie here if desired:
+              // clearDraft();
+            }}
+          />
+        ) : (
+          <MissingDraftGuard onBackToStart={() => setStep(1)} />
+        )
       )}
-    </main>
+    </section>
+  );
+}
+
+/** Small helper UI if someone lands on step 2/3 without a draftId */
+function MissingDraftGuard({ onBackToStart }: { onBackToStart: () => void }) {
+  return (
+    <div className="rounded border p-4 bg-yellow-50">
+      <p className="mb-3">
+        We couldn’t find your onboarding session. Please start with your email and password.
+      </p>
+      <button className="rounded bg-black px-3 py-2 text-white" onClick={onBackToStart}>
+        Go to Step 1
+      </button>
+    </div>
   );
 }
