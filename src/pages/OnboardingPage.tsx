@@ -20,7 +20,12 @@ export default function OnboardingPage() {
   // ui step (defaults to 1; if a draft exists we’ll sync below)
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  // load admin config once
+  function clearDraft() {
+    setDraftId(null);
+    void load(undefined as unknown as string);
+    setStep(1);
+  }
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -37,12 +42,9 @@ export default function OnboardingPage() {
     return () => { mounted = false; };
   }, []);
 
-  // if we already have a draft, jump the UI to the draft's next step
   useEffect(() => {
     if (!draftLoading && draft) {
-      // draft.step is the NEXT step the user should see (2 or 3)
       const next = draft.step as 2 | 3;
-      // only bump forward; never go backward from 3 to 2
       setStep(next === 3 ? 3 : 2);
     }
   }, [draftLoading, draft]);
@@ -56,7 +58,6 @@ export default function OnboardingPage() {
     [config]
   );
 
-  // unified loading/error states
   if (cfgLoading || draftLoading) return <p>Loading…</p>;
   if (cfgErr) return <p className="text-red-600">Error: {cfgErr}</p>;
   if (!config) return <p>No configuration found.</p>;
@@ -65,17 +66,15 @@ export default function OnboardingPage() {
     <section className="space-y-6">
       <Stepper total={3} current={step} />
 
-      {/* STEP 1: create account -> sets draftId and moves to step 2 */}
       {step === 1 && (
         <Step1_Account
           onCreated={(newDraftId) => {
-            setDraftId(newDraftId); // persists to cookie
+            setDraftId(newDraftId);
             setStep(2);
           }}
         />
       )}
 
-      {/* STEP 2: requires a draftId */}
       {step === 2 && (
         draftId ? (
           <Step2_Custom
@@ -83,7 +82,6 @@ export default function OnboardingPage() {
             components={page2}
             onNext={() => {
               setStep(3);
-              // optional: ensure the latest server state is in memory
               void load(draftId);
             }}
           />
@@ -92,7 +90,6 @@ export default function OnboardingPage() {
         )
       )}
 
-      {/* STEP 3: requires a draftId */}
       {step === 3 && (
         draftId ? (
           <Step3_Custom
@@ -100,8 +97,7 @@ export default function OnboardingPage() {
             components={page3}
             onFinish={() => {
               alert("Thanks! Your onboarding is complete.");
-              // You could clear the draft cookie here if desired:
-              // clearDraft();
+              clearDraft(); 
             }}
           />
         ) : (
@@ -112,12 +108,11 @@ export default function OnboardingPage() {
   );
 }
 
-/** Small helper UI if someone lands on step 2/3 without a draftId */
 function MissingDraftGuard({ onBackToStart }: { onBackToStart: () => void }) {
   return (
     <div className="rounded border p-4 bg-yellow-50">
       <p className="mb-3">
-        We couldn’t find your onboarding session. Please start with your email and password.
+        Please start with your email and password.
       </p>
       <button className="rounded bg-black px-3 py-2 text-white" onClick={onBackToStart}>
         Go to Step 1
