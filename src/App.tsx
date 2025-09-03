@@ -1,4 +1,4 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 
 const navLinks = [
   { to: "/", label: "Onboarding" },
@@ -7,6 +7,8 @@ const navLinks = [
 ];
 
 export default function App() {
+  const { pathname } = useLocation();
+
   return (
     <div
       className="min-h-screen"
@@ -22,15 +24,20 @@ export default function App() {
             backgroundColor: `var(--z-card)`,
           }}
         >
-          {navLinks.map(({ to, label }) => (
-            <Link
-              key={to}
-              to={to}
-              className="transition hover:text-green-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 rounded-md px-1.5 py-0.5"
-            >
-              {label}
-            </Link>
-          ))}
+          {navLinks.map(({ to, label }) => {
+            const isActive = pathname === to;
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={`rounded-md px-1.5 py-0.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
+                  isActive ? "font-semibold text-green-600" : "hover:text-green-600"
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
         </nav>
         <Outlet />
       </div>

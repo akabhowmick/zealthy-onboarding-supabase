@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+:root {
+  --z-bg: #edfff3;
+  --z-card: #aee5c0;
+  --z-ink: #00210b;
+  --z-border: rgb(226, 232, 240);
+  --z-row-alt: rgb(249, 250, 251);
+}
+
+html,
+body,
+#root {
+  font-family: ui-sans-serif, system-ui, Inter, Segoe UI, Roboto, Helvetica, Arial,
+    Apple Color Emoji, Segoe UI Emoji;
+}
