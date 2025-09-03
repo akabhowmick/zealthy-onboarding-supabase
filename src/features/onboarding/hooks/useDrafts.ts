@@ -1,3 +1,4 @@
+// src/features/onboarding/hooks/useDraft.ts
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadDraft, saveDraft } from "../../../services/supabaseApi";
 import type { OnboardingDraft } from "../../../types";
@@ -21,25 +22,35 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
 }
 
+/** Patch shape the hook accepts for saving (column-per-field model) */
+export type DraftPatch = Partial<
+  Pick<
+    OnboardingDraft,
+    "about_me" | "birthdate" | "street" | "city" | "state" | "zip" | "step"
+  >
+>;
+
 export type UseDraftOptions = {
+  /** Cookie key name for persisting the draft id (default: "draftId") */
   cookieKey?: string;
+  /** If true, auto-load the draft when the id becomes known (default: false) */
   autoLoad?: boolean;
 };
 
 export type UseDraft = {
-  /** current draft id (if any) */
+  /** Current draft id (if any) */
   draftId: string | null;
-  /** loaded draft row (if loaded) */
+  /** Loaded draft row (if loaded) */
   draft: OnboardingDraft | null;
-  /** loading state for load/save */
+  /** Loading state for load/save */
   loading: boolean;
-  /** last error (string) */
+  /** Last error (string), if any */
   error: string | null;
 
-  /** set and persist a new draft id into cookie */
+  /** Set and persist a new draft id into cookie (pass null to clear) */
   setDraftId: (id: string | null) => void;
 
-  /** remove draft cookie and local state */
+  /** Remove draft cookie and local state */
   clearDraft: () => void;
 
   /**
@@ -53,15 +64,26 @@ export type UseDraft = {
    * Save a partial patch to the draft.
    * Throws on failure. Also refreshes `draft` in state if save succeeds.
    */
-  save: (patch: Partial<Pick<OnboardingDraft,
-    "about_me" | "birthdate" | "street" | "city" | "state" | "zip" | "step">>) => Promise<void>;
+  save: (patch: DraftPatch) => Promise<void>;
 };
+
+function pruneUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  const out: Partial<T> = {};
+  for (const [k, v] of Object.entries(obj) as [keyof T, T[keyof T]][]) {
+    if (v !== undefined) {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 
 /**
  * useDraft — manages draft id via cookie and provides load/save helpers.
  */
 export function useDraft(options: UseDraftOptions = {}): UseDraft {
   const cookieKey = options.cookieKey ?? "draftId";
+
   const [draftId, setDraftIdState] = useState<string | null>(null);
   const [draft, setDraft] = useState<OnboardingDraft | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -73,10 +95,11 @@ export function useDraft(options: UseDraftOptions = {}): UseDraft {
     if (fromCookie) setDraftIdState(fromCookie);
   }, [cookieKey]);
 
-  // auto-load the draft row when we know the id
+  // Auto-load the draft row when we know the id
   useEffect(() => {
     if (!options.autoLoad) return;
     if (!draftId) return;
+
     let mounted = true;
     (async () => {
       setLoading(true);
@@ -92,6 +115,7 @@ export function useDraft(options: UseDraftOptions = {}): UseDraft {
         if (mounted) setLoading(false);
       }
     })();
+
     return () => {
       mounted = false;
     };
@@ -117,11 +141,13 @@ export function useDraft(options: UseDraftOptions = {}): UseDraft {
     async (id?: string) => {
       const targetId = id ?? draftId ?? getCookie(cookieKey);
       if (!targetId) return null;
+
       setLoading(true);
       setError(null);
       try {
         const row = await loadDraft(targetId);
         setDraft(row);
+        // If backend returns a different (canonical) id, sync cookie/state
         if (row?.id && row.id !== draftId) {
           setDraftId(row.id);
         }
@@ -138,13 +164,17 @@ export function useDraft(options: UseDraftOptions = {}): UseDraft {
   );
 
   const save = useCallback(
-    async (patch: Partial<Pick<OnboardingDraft,
-      "about_me" | "birthdate" | "street" | "city" | "state" | "zip" | "step">>) => {
+    async (patch: DraftPatch) => {
       if (!draftId) throw new Error("No draft id available");
+
+      // Critical: only send provided keys to avoid wiping other columns
+      const cleaned = pruneUndefined(patch);
+      if (Object.keys(cleaned).length === 0) return;
+
       setLoading(true);
       setError(null);
       try {
-        await saveDraft(draftId, patch);
+        await saveDraft(draftId, cleaned);
         const row = await loadDraft(draftId);
         setDraft(row);
       } catch (e) {
