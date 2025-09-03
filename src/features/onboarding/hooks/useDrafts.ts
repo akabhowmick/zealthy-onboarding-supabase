@@ -22,9 +22,7 @@ function deleteCookie(name: string) {
 }
 
 export type UseDraftOptions = {
-  /** cookie key; override if you run multiple flows on same domain */
   cookieKey?: string;
-  /** auto-load draft on mount if cookie exists */
   autoLoad?: boolean;
 };
 
@@ -61,13 +59,6 @@ export type UseDraft = {
 
 /**
  * useDraft — manages draft id via cookie and provides load/save helpers.
- *
- * Usage:
- * const { draftId, setDraftId, load, save, clearDraft } = useDraft();
- * After you call createUser(), call setDraftId(draft.id).
- * On mount of your router, you can auto resume:
- *   const { draft, load } = useDraft({ autoLoad: true });
- *   useEffect(() => { load(); }, []);
  */
 export function useDraft(options: UseDraftOptions = {}): UseDraft {
   const cookieKey = options.cookieKey ?? "draftId";
