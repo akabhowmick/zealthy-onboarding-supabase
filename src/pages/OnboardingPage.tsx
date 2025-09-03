@@ -7,6 +7,7 @@ import Step2_Custom from "../features/onboarding/Step2_Custom";
 import Step3_Custom from "../features/onboarding/Step3_Custom";
 import { getConfig } from "../services/supabaseApi";
 import type { OnboardingConfig, ComponentKind } from "../types";
+import Swal from "sweetalert2";
 
 export default function OnboardingPage() {
   // admin config
@@ -39,7 +40,9 @@ export default function OnboardingPage() {
         if (mounted) setCfgLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -49,14 +52,8 @@ export default function OnboardingPage() {
     }
   }, [draftLoading, draft]);
 
-  const page2 = useMemo<ComponentKind[]>(
-    () => config?.page2_components ?? [],
-    [config]
-  );
-  const page3 = useMemo<ComponentKind[]>(
-    () => config?.page3_components ?? [],
-    [config]
-  );
+  const page2 = useMemo<ComponentKind[]>(() => config?.page2_components ?? [], [config]);
+  const page3 = useMemo<ComponentKind[]>(() => config?.page3_components ?? [], [config]);
 
   if (cfgLoading || draftLoading) return <p>Loading…</p>;
   if (cfgErr) return <p className="text-red-600">Error: {cfgErr}</p>;
@@ -75,8 +72,8 @@ export default function OnboardingPage() {
         />
       )}
 
-      {step === 2 && (
-        draftId ? (
+      {step === 2 &&
+        (draftId ? (
           <Step2_Custom
             draftId={draftId}
             components={page2}
@@ -87,23 +84,26 @@ export default function OnboardingPage() {
           />
         ) : (
           <MissingDraftGuard onBackToStart={() => setStep(1)} />
-        )
-      )}
+        ))}
 
-      {step === 3 && (
-        draftId ? (
+      {step === 3 &&
+        (draftId ? (
           <Step3_Custom
             draftId={draftId}
             components={page3}
             onFinish={() => {
-              alert("Thanks! Your onboarding is complete.");
-              clearDraft(); 
+              Swal.fire({
+                icon: "success",
+                title: "All done!",
+                text: "Thanks! Your onboarding is complete.",
+                confirmButtonColor: "#000", 
+              });
+              clearDraft();
             }}
           />
         ) : (
           <MissingDraftGuard onBackToStart={() => setStep(1)} />
-        )
-      )}
+        ))}
     </section>
   );
 }
@@ -111,9 +111,7 @@ export default function OnboardingPage() {
 function MissingDraftGuard({ onBackToStart }: { onBackToStart: () => void }) {
   return (
     <div className="rounded border p-4 bg-yellow-50">
-      <p className="mb-3">
-        Please start with your email and password.
-      </p>
+      <p className="mb-3">Please start with your email and password.</p>
       <button className="rounded bg-black px-3 py-2 text-white" onClick={onBackToStart}>
         Go to Step 1
       </button>

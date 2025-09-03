@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getConfig, saveConfig } from "../../services/supabaseApi";
 import type { ComponentKind } from "../../types";
+import Swal from "sweetalert2";
 
 const ALL: ComponentKind[] = ["about_me", "address", "birthdate"];
 
@@ -44,7 +45,12 @@ export default function AdminConfigForm() {
     setOk(null);
     try {
       await saveConfig(p2, p3);
-      setOk("Configuration saved.");
+      Swal.fire({
+      icon: "success",
+      title: "Saved!",
+      text: "Configuration saved successfully.",
+      confirmButtonColor: "#000",
+    });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to save configuration");
     } finally {

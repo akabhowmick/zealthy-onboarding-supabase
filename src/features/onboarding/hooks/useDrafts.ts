@@ -82,7 +82,7 @@ export function useDraft(options: UseDraftOptions = {}): UseDraft {
     if (fromCookie) setDraftIdState(fromCookie);
   }, [cookieKey]);
 
-  // Optionally auto-load the draft row when we know the id
+  // auto-load the draft row when we know the id
   useEffect(() => {
     if (!options.autoLoad) return;
     if (!draftId) return;
@@ -154,7 +154,6 @@ export function useDraft(options: UseDraftOptions = {}): UseDraft {
       setError(null);
       try {
         await saveDraft(draftId, patch);
-        // Re-fetch to keep local state in sync (optional but safer)
         const row = await loadDraft(draftId);
         setDraft(row);
       } catch (e) {

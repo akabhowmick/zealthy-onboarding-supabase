@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getConfig, saveConfig } from "../services/supabaseApi";
 import type { ComponentKind } from "../types";
+import Swal from "sweetalert2";
 
 type Placement = 2 | 3;
 
@@ -86,7 +87,12 @@ export default function AdminConfigForm() {
         throw new Error("Each page must have at least one component.");
       }
       await saveConfig(p2, p3);
-      setOk("Configuration saved.");
+      Swal.fire({
+      icon: "success",
+      title: "Saved!",
+      text: "Configuration saved successfully.",
+      confirmButtonColor: "#000",
+    });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to save configuration");
     } finally {

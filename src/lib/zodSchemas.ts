@@ -10,13 +10,13 @@ export const accountSchema = z.object({
 });
 export type AccountForm = z.infer<typeof accountSchema>;
 
-// About Me (step 2/3 optional component)
+// About Me (step 2/3)
 export const aboutMeSchema = z.object({
   about_me: z.string().min(5, "Please write at least 5 characters").max(1000),
 });
 export type AboutMeForm = z.infer<typeof aboutMeSchema>;
 
-//Address (step 2/3 optional component)
+//Address (step 2/3)
 export const addressSchema = z.object({
   street: z.string().min(1, "Street is required"),
   city: z.string().min(1, "City is required"),
@@ -30,7 +30,7 @@ export const addressSchema = z.object({
 export type AddressForm = z.infer<typeof addressSchema>;
 
 /**
- * Birthdate (step 2/3 optional component)
+ * Birthdate (step 2/3 component)
  * Ensures date is not in the future.
  */
 export const birthdateSchema = z.object({
