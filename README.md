@@ -39,25 +39,25 @@ This project implements the requirements from the [Zealthy Full Stack Engineerin
 ## ⚡️ Quick Start (Local)
 
 1. Clone repo:
-   '''
+   ```
    git clone https://github.com/your-username/zealthy-onboarding.git
    cd zealthy-onboarding
-   '''
+   ```
 
 2. Install deps:
-   '''
+   ```
    npm install
-   '''
+   ```
 
 3. Create .env:
-   '''
+   ```
    VITE_SUPABASE_URL=https://<your-project>.supabase.co
    VITE_SUPABASE_ANON_KEY=<your-anon-public-key>
-   '''
+   ```
 
 4. Init DB (Supabase SQL Editor → paste from /db/init.sql).
 
 5. Run dev server:
-   '''
+   ```
    npm run dev
-   '''
+   ```
