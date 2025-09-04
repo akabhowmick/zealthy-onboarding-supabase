@@ -91,6 +91,7 @@ export default function OnboardingPage() {
           <Step3_Custom
             draftId={draftId}
             components={page3}
+            draft={draft}
             onFinish={() => {
               Swal.fire({
                 icon: "success",

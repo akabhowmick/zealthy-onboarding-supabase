@@ -103,17 +103,17 @@ export default function AdminConfigForm() {
   if (loading) return <p>Loading…</p>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-xl">
       <div>
         <h2 className="font-semibold mb-1">Admin: Configure Onboarding</h2>
-        <p className="text-sm text-gray-700 mb-3">
+        <p className="text-md text-gray-700 mb-3">
           Choose which page each component appears on. Each page (Step 2 & Step 3) must have at least one component.
         </p>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="text-sm text-gray-600">
+              <tr className="text-md text-gray-600">
                 <th className="py-2">Component</th>
                 <th className="py-2">Step 2</th>
                 <th className="py-2">Step 3</th>
@@ -134,7 +134,7 @@ export default function AdminConfigForm() {
                         checked={placement[c] === 2}
                         onChange={() => onChoose(c, 2)}
                       />
-                      <span className="text-sm">Step 2</span>
+                      <span>Step 2</span>
                     </label>
                   </td>
                   <td className="py-2">
@@ -146,30 +146,30 @@ export default function AdminConfigForm() {
                         checked={placement[c] === 3}
                         onChange={() => onChoose(c, 3)}
                       />
-                      <span className="text-sm">Step 3</span>
+                      <span className="text-md">Step 3</span>
                     </label>
                   </td>
                 </tr>
               ))}
               <tr className="border-t bg-white/60">
                 <td className="py-2 font-medium">Summary</td>
-                <td className="py-2 text-sm">{counts.c2} selected</td>
-                <td className="py-2 text-sm">{counts.c3} selected</td>
+                <td className="py-2 text-md">{counts.c2} selected</td>
+                <td className="py-2 text-md">{counts.c3} selected</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         {counts.c2 === 0 && (
-          <p className="text-sm text-red-600 mt-2">Step 2 must have at least one component.</p>
+          <p className="text-md text-red-600 mt-2">Step 2 must have at least one component.</p>
         )}
         {counts.c3 === 0 && (
-          <p className="text-sm text-red-600 mt-1">Step 3 must have at least one component.</p>
+          <p className="text-md text-red-600 mt-1">Step 3 must have at least one component.</p>
         )}
       </div>
 
-      {err && <p className="text-sm text-red-600">{err}</p>}
-      {ok && <p className="text-sm text-green-700">{ok}</p>}
+      {err && <p className="text-md text-red-600">{err}</p>}
+      {ok && <p className="text-md text-green-700">{ok}</p>}
 
       <button
         className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"

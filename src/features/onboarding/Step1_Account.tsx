@@ -33,9 +33,9 @@ export default function Step1_Account({ onCreated }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
       <div>
-        <label className="block text-sm font-medium">Email</label>
+        <label className="block text-md font-medium">Email</label>
         <input
-          className="mt-1 w-full rounded border p-2"
+          className="mt-1 w-full text-xl rounded border p-2"
           type="email"
           value={form.email}
           onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
@@ -43,9 +43,9 @@ export default function Step1_Account({ onCreated }: Props) {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium">Password</label>
+        <label className="block text-md font-medium">Password</label>
         <input
-          className="mt-1 w-full rounded border p-2"
+          className="mt-1 w-full text-xl rounded border p-2"
           type="password"
           value={form.password}
           onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}

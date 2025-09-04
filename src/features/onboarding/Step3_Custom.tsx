@@ -4,15 +4,16 @@ import { saveDraft } from "../../services/supabaseApi";
 import AboutMeField from "./components/AboutMeField";
 import AddressFields from "./components/AddressFields";
 import BirthdateField from "./components/BirthdateField";
-import type { ComponentKind } from "../../types";
+import type { ComponentKind, OnboardingDraft } from "../../types";
 
 type Props = {
   draftId: string;
+  draft: OnboardingDraft | null;
   components: ComponentKind[]; // which components to render on step 3
   onFinish: () => void;
 };
 
-export default function Step3_Custom({ draftId, components, onFinish }: Props) {
+export default function Step3_Custom({ draftId, draft, components, onFinish }: Props) {
   const [about_me, setAboutMe] = useState("");
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
@@ -46,14 +47,15 @@ export default function Step3_Custom({ draftId, components, onFinish }: Props) {
 
     setLoading(true);
     try {
-      await saveDraft(draftId, {
-        about_me: showAbout ? about_me : null,
-        street: showAddress ? street : null,
-        city: showAddress ? city : null,
-        state: showAddress ? state : null,
-        zip: showAddress ? zip : null,
-        birthdate: showBirth ? birthdate : null,
-      });
+      const data = {
+        about_me: showAbout ? about_me : draft?.about_me,
+        street: showAddress ? street : draft?.street,
+        city: showAddress ? city : draft?.city,
+        state: showAddress ? state : draft?.state,
+        zip: showAddress ? zip : draft?.zip,
+        birthdate: showBirth ? birthdate : draft?.birthdate,
+      };
+      await saveDraft(draftId, data);
       onFinish();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to save");
@@ -82,7 +84,10 @@ export default function Step3_Custom({ draftId, components, onFinish }: Props) {
       {showBirth && <BirthdateField value={birthdate} onChange={setBirthdate} />}
 
       {err && <p className="text-sm text-red-600">{err}</p>}
-      <button className="rounded bg-black px-4 py-2 text-white disabled:opacity-50" disabled={loading}>
+      <button
+        className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+        disabled={loading}
+      >
         {loading ? "Saving…" : "Finish"}
       </button>
     </form>

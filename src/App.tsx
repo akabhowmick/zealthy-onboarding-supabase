@@ -30,7 +30,7 @@ export default function App() {
               <Link
                 key={to}
                 to={to}
-                className={`rounded-md px-1.5 py-0.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
+                className={`rounded-md text-2xl px-1.5 py-0.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${
                   isActive ? "font-semibold text-green-600" : "hover:text-green-600"
                 }`}
               >

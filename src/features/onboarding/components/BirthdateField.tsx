@@ -8,7 +8,7 @@ export default function BirthdateField({ value, onChange }: Props) {
     <div className="space-y-1">
       <label className="block text-sm font-medium">Birthdate</label>
       <input
-        className="w-full rounded border p-2"
+        className="w-full rounded text-xl border p-2"
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
