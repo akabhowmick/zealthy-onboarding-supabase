@@ -53,11 +53,15 @@ export default function DataPage() {
               rows.map((r, i) => (
                 <tr key={i} className="odd:bg-white even:bg-gray-50">
                   <td className="p-2">{r.email ?? ""}</td>
-                  <td className="p-2 max-w-[300px]"><textarea>{r.about_me ?? ""}</textarea></td>
+                  <td className="p-2 max-w-[300px]">
+                    <textarea defaultValue={r.about_me ?? ""} />
+                  </td>
                   <td className="p-2">{r.address ?? ""}</td>
                   <td className="p-2">{r.birthdate ?? ""}</td>
                   <td className="p-2">{r.step ?? ""}</td>
-                  <td className="p-2">{r.created_at ? new Date(r.created_at).toLocaleString() : ""}</td>
+                  <td className="p-2">
+                    {r.created_at ? new Date(r.created_at).toLocaleString() : ""}
+                  </td>
                 </tr>
               ))
             )}

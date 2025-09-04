@@ -45,7 +45,6 @@ export async function createUser(
 }> {
   try {
     const password_hash = await bcrypt.hash(password, 10);
-    console.log(password_hash);
     const { data: user, error: uErr } = await supabase
       .from("users")
       .insert([{ email, password_hash }])
